@@ -1,0 +1,38 @@
+---
+layout: base.njk
+title: The Global Forum – Serious Analysis
+---
+
+<div class="mb-10">
+  <div class="hero-gradient rounded-2xl p-8 text-white">
+    <h1 class="text-3xl md:text-4xl font-bold mb-3">In‑depth analysis<br>on global affairs</h1>
+    <p class="text-gray-200 text-lg">Politics · Geopolitics · Economics · History · Technology</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+  {% for article in collections.articles | reverse %}
+  <div class="bg-white rounded-xl shadow-sm border overflow-hidden card-hover">
+    {% if article.data.image %}
+    <img src="{{ article.data.image }}" alt="{{ article.data.title }}" class="w-full h-48 object-cover">
+    {% else %}
+    <img src="https://picsum.photos/seed/{{ article.fileSlug }}/400/240" class="w-full h-48 object-cover">
+    {% endif %}
+    <div class="p-5">
+      <div class="mb-2">
+        <span class="text-xs font-semibold bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full">{{ article.data.category or "Analysis" }}</span>
+      </div>
+      <h2 class="text-xl font-bold mb-2">
+        <a href="{{ article.url }}" class="hover:text-indigo-700">{{ article.data.title }}</a>
+      </h2>
+      <p class="text-gray-600 text-sm mb-3">{{ article.data.summary or article.templateContent | striptags | truncate(120) }}</p>
+      <div class="flex justify-between items-center text-xs text-gray-400">
+        <span><i class="far fa-calendar-alt mr-1"></i> {{ article.data.date | readableDate }}</span>
+        <a href="{{ article.url }}" class="text-indigo-600 font-medium hover:underline">Read →</a>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <p class="col-span-full text-center text-gray-500 py-12">No articles yet. <a href="/admin/" class="text-indigo-600">Create your first article in the admin panel →</a></p>
+  {% endfor %}
+</div>
