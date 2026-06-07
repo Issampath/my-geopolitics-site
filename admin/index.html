@@ -3,56 +3,22 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Content Manager</title>
+  <title>Admin Login</title>
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body>
-  <script>
-    window.CMS_MANUAL_INIT = true;
-  </script>
-  <script src="https://unpkg.com/decap-cms@^2.10.0/dist/decap-cms.js"></script>
-  <script>
-    // Wait for Netlify Identity to load
-    window.netlifyIdentity = window.netlifyIdentity || {};
-    window.netlifyIdentity.on = function(event, cb) {
-      if (event === 'init') {
-        if (window.netlifyIdentity.currentUser) {
-          cb();
-        } else {
-          document.addEventListener('netlifyIdentityReady', cb);
-        }
-      }
-    };
-    
-    setTimeout(function() {
-      CMS.init({
-        config: {
-          backend: {
-            name: "git-gateway",
-            branch: "main"
-          },
-          media_folder: "images/uploads",
-          public_folder: "/images/uploads",
-          collections: [
-            {
-              name: "articles",
-              label: "Articles",
-              folder: "articles",
-              create: true,
-              slug: "{{slug}}",
-              fields: [
-                { label: "Title", name: "title", widget: "string" },
-                { label: "Summary", name: "summary", widget: "text", required: false },
-                { label: "Date", name: "date", widget: "datetime", format: "YYYY-MM-DD" },
-                { label: "Category", name: "category", widget: "select", options: ["Politics", "Geopolitics", "Economics", "History", "Technology"] },
-                { label: "Image", name: "image", widget: "image", required: false },
-                { label: "Body", name: "body", widget: "markdown" }
-              ]
-            }
-          ]
-        }
-      });
-    }, 200);
-  </script>
+<script>
+  // Check if user is already logged in
+  var netlifyIdentity = window.netlifyIdentity;
+  var user = netlifyIdentity.currentUser;
+  if (user) {
+    window.location.href = '/admin/#/collections/articles';
+  } else {
+    netlifyIdentity.on('login', function() {
+      window.location.href = '/admin/#/collections/articles';
+    });
+    netlifyIdentity.open();
+  }
+</script>
 </body>
 </html>
