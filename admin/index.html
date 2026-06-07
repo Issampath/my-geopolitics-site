@@ -5,37 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Content Manager</title>
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <style>
+    body { margin: 0; font-family: system-ui, -apple-system, sans-serif; }
+    .loading { text-align: center; padding: 2rem; color: #4b5563; }
+  </style>
 </head>
 <body>
+  <div class="loading">Loading admin panel...</div>
   <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
   <script>
-    CMS.init({
-      config: {
-        backend: {
-          name: "git-gateway",
-          branch: "main",
-        },
-        local_backend: false,
-        media_folder: "images/uploads",
-        public_folder: "/images/uploads",
-        collections: [
-          {
-            name: "articles",
-            label: "Articles",
-            folder: "articles",
-            create: true,
-            slug: "{{slug}}",
-            fields: [
-              { label: "Title", name: "title", widget: "string" },
-              { label: "Summary", name: "summary", widget: "text", required: false },
-              { label: "Date", name: "date", widget: "datetime", default: "", format: "YYYY-MM-DD" },
-              { label: "Category", name: "category", widget: "select", options: ["Politics", "Geopolitics", "Economics", "History", "Technology"] },
-              { label: "Image", name: "image", widget: "image", required: false, media_library: { config: { max_file_size: 5242880 } } },
-              { label: "Body", name: "body", widget: "markdown" }
-            ]
-          }
-        ]
-      }
+    // Fix for the removeChild error: delay CMS initialization slightly
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        if (typeof CMS !== 'undefined') {
+          CMS.init({
+            config: {
+              backend: {
+                name: "git-gateway",
+                branch: "main",
+              },
+              local_backend: false,
+              media_folder: "images/uploads",
+              public_folder: "/images/uploads",
+              collections: [
+                {
+                  name: "articles",
+                  label: "Articles",
+                  folder: "articles",
+                  create: true,
+                  slug: "{{slug}}",
+                  fields: [
+                    { label: "Title", name: "title", widget: "string" },
+                    { label: "Summary", name: "summary", widget: "text", required: false },
+                    { label: "Date", name: "date", widget: "datetime", default: "", format: "YYYY-MM-DD" },
+                    { label: "Category", name: "category", widget: "select", options: ["Politics", "Geopolitics", "Economics", "History", "Technology"] },
+                    { label: "Image", name: "image", widget: "image", required: false, media_library: { config: { max_file_size: 5242880 } } },
+                    { label: "Body", name: "body", widget: "markdown" }
+                  ]
+                }
+              ]
+            }
+          });
+        }
+      }, 100);
     });
   </script>
 </body>
