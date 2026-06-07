@@ -1,24 +1,142 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Login</title>
+  <title>Admin – The Global Forum</title>
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #f9fafb; margin: 0; padding: 20px; }
+    .container { max-width: 800px; margin: 40px auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    button { background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 1rem; }
+    button:hover { background: #2563eb; }
+    .hidden { display: none; }
+    textarea, input, select { width: 100%; padding: 8px; margin: 8px 0 16px; border: 1px solid #ccc; border-radius: 6px; }
+    .article-preview { background: #f1f5f9; padding: 15px; border-radius: 8px; margin-top: 20px; }
+  </style>
 </head>
 <body>
+<div class="container" id="app">
+  <h1>📝 Article Manager</h1>
+  <div id="loginSection">
+    <p>Please log in with your Netlify Identity account.</p>
+    <button id="loginBtn">Login with Netlify Identity</button>
+  </div>
+  <div id="editorSection" class="hidden">
+    <h2>Create / Edit Article</h2>
+    <p>Logged in as <span id="userEmail"></span> <button id="logoutBtn" style="background:#6c757d; margin-left:10px;">Logout</button></p>
+    <form id="articleForm">
+      <label>Title</label>
+      <input type="text" id="title" required>
+
+      <label>Summary (short description for homepage)</label>
+      <textarea id="summary" rows="2"></textarea>
+
+      <label>Date</label>
+      <input type="date" id="date" required>
+
+      <label>Category</label>
+      <select id="category">
+        <option>Politics</option>
+        <option>Geopolitics</option>
+        <option>Economics</option>
+        <option>History</option>
+        <option>Technology</option>
+      </select>
+
+      <label>Image URL (optional – leave blank for random placeholder)</label>
+      <input type="url" id="image" placeholder="https://example.com/image.jpg">
+
+      <label>Article Body (Markdown supported)</label>
+      <textarea id="body" rows="10" placeholder="Write your article here..."></textarea>
+
+      <button type="submit" id="publishBtn">📤 Publish Article</button>
+    </form>
+    <div id="status"></div>
+    <div class="article-preview">
+      <strong>Preview:</strong>
+      <div id="preview"></div>
+    </div>
+  </div>
+</div>
+
 <script>
-  // Check if user is already logged in
-  var netlifyIdentity = window.netlifyIdentity;
-  var user = netlifyIdentity.currentUser;
-  if (user) {
-    window.location.href = '/admin/#/collections/articles';
-  } else {
-    netlifyIdentity.on('login', function() {
-      window.location.href = '/admin/#/collections/articles';
-    });
-    netlifyIdentity.open();
+  const netlifyIdentity = window.netlifyIdentity;
+  let currentUser = null;
+
+  function updateUI() {
+    currentUser = netlifyIdentity.currentUser;
+    if (currentUser) {
+      document.getElementById('loginSection').classList.add('hidden');
+      document.getElementById('editorSection').classList.remove('hidden');
+      document.getElementById('userEmail').innerText = currentUser.email;
+    } else {
+      document.getElementById('loginSection').classList.remove('hidden');
+      document.getElementById('editorSection').classList.add('hidden');
+    }
   }
+
+  netlifyIdentity.on('login', () => updateUI());
+  netlifyIdentity.on('logout', () => updateUI());
+
+  document.getElementById('loginBtn').onclick = () => netlifyIdentity.open();
+  document.getElementById('logoutBtn').onclick = () => netlifyIdentity.logout();
+
+  // Live preview
+  const bodyField = document.getElementById('body');
+  const previewDiv = document.getElementById('preview');
+  bodyField.addEventListener('input', () => {
+    previewDiv.innerHTML = markedParse(bodyField.value);
+  });
+
+  // Simple Markdown parser (basic)
+  function markedParse(md) {
+    return md
+      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+      .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+      .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+      .replace(/\*\*(.*)\*\*/gim, '<b>$1</b>')
+      .replace(/\*(.*)\*/gim, '<i>$1</i>')
+      .replace(/\n/g, '<br>');
+  }
+
+  // Form submission – creates a Markdown file and pushes to GitHub via Netlify Functions?
+  // For simplicity, we will redirect to a "how to" guide because direct file creation requires server-side.
+  // But we can use the Decap CMS API? Better: provide instructions to use GitHub web interface.
+  document.getElementById('articleForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const title = document.getElementById('title').value;
+    const summary = document.getElementById('summary').value;
+    const date = document.getElementById('date').value;
+    const category = document.getElementById('category').value;
+    const image = document.getElementById('image').value;
+    const body = document.getElementById('body').value;
+
+    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const filename = `${date}-${slug}.md`;
+    const content = `---
+title: "${title.replace(/"/g, '\\"')}"
+summary: "${summary.replace(/"/g, '\\"')}"
+date: ${date}
+category: "${category}"
+image: "${image || ''}"
+---
+
+${body}`;
+
+    // We cannot write directly to GitHub from client-side without a token.
+    // So we'll provide a download link and manual upload instructions.
+    const blob = new Blob([content], {type: 'text/markdown'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+    document.getElementById('status').innerHTML = `<p>✅ File "${filename}" downloaded. Please go to <a href="https://github.com/Issampath/my-geopolitics-site/tree/main/articles" target="_blank">GitHub articles folder</a> and upload this file manually. Then Netlify will auto-publish.</p>`;
+  });
+  
+  updateUI();
 </script>
 </body>
 </html>
