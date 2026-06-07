@@ -2,9 +2,9 @@
   "name": "global-forum-cms",
   "version": "1.0.0",
   "scripts": {
-  "start": "eleventy --serve",
-  "build": "node_modules/.bin/eleventy"
-}
+    "start": "eleventy --serve",
+    "build": "node_modules/.bin/eleventy"
+  },
   "devDependencies": {
     "@11ty/eleventy": "^2.0.1"
   }
